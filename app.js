@@ -15,56 +15,24 @@ function ShoppingListCheckOffService(){
   var itemsToBuy = [];
   var itemsBought = [];
 
-  var completedToBuy = true;
-  var messageToBuy = "Everything is bought!";
-
-  var completedBought = true;
-  var messageBought = "Nothing bought yet.";
-
-  service.messageBetweenControllers = function(){
-    var response = {
-      completedToBuy: completedToBuy,
-      messageToBuy: messageToBuy,
-      completedBought: completedBought,
-      messageBought: messageBought,
-    }
-    return response;
-  };
-
   service.addItem = function (itemName, quantity) {
     var item = {
       name: itemName,
       quantity: quantity
     };
     itemsToBuy.push(item);
-    
-    completedToBuy = false
   };
 
   service.getItemsToBuy = function () {
-    if(itemsToBuy.length == 0)
-    {
-      messageToBuy = "Everything is bought!";
-      completedToBuy = true;
-    }
-
     return itemsToBuy;
   };
 
   service.getItemsBought = function () {
-    if(itemsBought.length == 0)
-    {
-      messageBought = "Nothing bought yet.";
-      completedBought = true;
-    }
-
     return itemsBought;
   };
 
   service.removeItem = function (itemIndex){
     itemsBought.push(itemsToBuy[itemIndex]);
-    completedBought = false;
-    
     itemsToBuy.splice(itemIndex, 1);
   };
 }
@@ -80,16 +48,8 @@ function ToBuyController(ShoppingListCheckOffService){
 
   list1.items = ShoppingListCheckOffService.getItemsToBuy();
 
-  var btwn = ShoppingListCheckOffService.messageBetweenControllers();
-  console.log(btwn);
-  list1.completed = btwn.completedToBuy;
-  list1.message = btwn.messageToBuy;
-
   list1.addItem = function () {
     ShoppingListCheckOffService.addItem(list1.itemName, list1.itemQuantity);
-    
-    btwn = ShoppingListCheckOffService.messageBetweenControllers();
-    list1.completed = btwn.completedToBuy;
   };
 
   list1.removeItem = function (index) {
@@ -106,10 +66,6 @@ function AlreadyBoughtController(ShoppingListCheckOffService){
   list2.itemQuantity = "";
 
   list2.items = ShoppingListCheckOffService.getItemsBought();
-
-  var btwn = ShoppingListCheckOffService.messageBetweenControllers();
-  list2.completed = btwn.completedBought;
-  list2.message = list2.messageBought;
 }
 
 })();

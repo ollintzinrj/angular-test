@@ -1,59 +1,115 @@
 (function (){
-  'use strict'; 
+'use strict';
 
-  //declaracion de la app
-  angular.module('LunchCheckApp', [])
+angular.module('ShoppingListCheckOff', [])
+.controller('ToBuyController', ToBuyController)
+.controller('AlreadyBoughtController', AlreadyBoughtController)
+.service('ShoppingListCheckOffService', ShoppingListCheckOffService);
+;
 
-  //declaracion de controlador
-  .controller('LunchCheckController', LunchCheckController);
 
-  LunchCheckController.$inject = ['$scope'];
-  function LunchCheckController($scope)
-  {
-    //variables necesarias
-    $scope.list = "";
-    $scope.message = "";
-    $scope.colorText = "black";
-    $scope.colorTextarea = "1px solid grey;";
+//Servicio: agregar, mostrar y eliminar
+function ShoppingListCheckOffService(){
+  var service = this;
 
-    //funcion de retorno
-    $scope.check = function(){
-      var total = 0; 
+  var itemsToBuy = [];
+  var itemsBought = [];
 
-      if($scope.list == ''){
-        $scope.message = "Empty! " +total + " items. Write the items first.";
-        $scope.colorText = "red";
-        $scope.colorTextarea = "1px solid red;";
-      }
-      else{
-        total = cuenta_items($scope.list.split(","));
+  var completedToBuy = true;
+  var messageToBuy = "Everything is bought!";
 
-        if (total <= 3){
-          $scope.message = "Enjoy! " +total + " items";
-          $scope.colorText = "green";
-          $scope.colorTextarea = "1px solid green;";
-        }
+  var completedBought = true;
+  var messageBought = "Nothing bought yet.";
 
-        else{
-          if(total > 3)
-          $scope.message = "Too Much! " +total + " items";
-          $scope.colorText = "green";
-          $scope.colorTextarea = "1px solid green;";
-        }
-      }
+  service.messageBetweenControllers = function(){
+    var response = {
+      completedToBuy: completedToBuy,
+      messageToBuy: messageToBuy,
+      completedBought: completedBought,
+      messageBought: messageBought,
+    }
+    return response;
+  };
+
+  service.addItem = function (itemName, quantity) {
+    var item = {
+      name: itemName,
+      quantity: quantity
     };
+    itemsToBuy.push(item);
+    
+    completedToBuy = false
+  };
 
-    //funcion de calculo
-    function cuenta_items(lista_items) {
-      var total_items = 0;
-
-      for (var i = lista_items.length - 1; i >= 0; i--) {
-        if(lista_items[i] != '')
-          total_items = total_items + 1;
-      }
-      return total_items;
+  service.getItemsToBuy = function () {
+    if(itemsToBuy.length == 0)
+    {
+      messageToBuy = "Everything is bought!";
+      completedToBuy = true;
     }
 
-  }
+    return itemsToBuy;
+  };
+
+  service.getItemsBought = function () {
+    if(itemsBought.length == 0)
+    {
+      messageBought = "Nothing bought yet.";
+      completedBought = true;
+    }
+
+    return itemsBought;
+  };
+
+  service.removeItem = function (itemIndex){
+    itemsBought.push(itemsToBuy[itemIndex]);
+    completedBought = false;
+    
+    itemsToBuy.splice(itemIndex, 1);
+  };
+}
+
+
+//Controlador1: agregar, mostrar y eliminar
+ToBuyController.$inject = ['ShoppingListCheckOffService'];
+function ToBuyController(ShoppingListCheckOffService){
+  
+  var list1 = this;
+  list1.itemName = "";
+  list1.itemQuantity = "";
+
+  list1.items = ShoppingListCheckOffService.getItemsToBuy();
+
+  var btwn = ShoppingListCheckOffService.messageBetweenControllers();
+  console.log(btwn);
+  list1.completed = btwn.completedToBuy;
+  list1.message = btwn.messageToBuy;
+
+  list1.addItem = function () {
+    ShoppingListCheckOffService.addItem(list1.itemName, list1.itemQuantity);
+    
+    btwn = ShoppingListCheckOffService.messageBetweenControllers();
+    list1.completed = btwn.completedToBuy;
+  };
+
+  list1.removeItem = function (index) {
+    ShoppingListCheckOffService.removeItem(index);
+  };
+}
+
+//Controlador2: mostrar
+AlreadyBoughtController.$inject = ['ShoppingListCheckOffService'];
+function AlreadyBoughtController(ShoppingListCheckOffService){
+
+  var list2 = this;
+  list2.itemName = "";
+  list2.itemQuantity = "";
+
+  list2.items = ShoppingListCheckOffService.getItemsBought();
+
+  var btwn = ShoppingListCheckOffService.messageBetweenControllers();
+  list2.completed = btwn.completedBought;
+  list2.message = list2.messageBought;
+}
 
 })();
